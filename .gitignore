@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+build
+CMakeFiles
+*.cmake 
+fprinter
+Makefile
+*.txt
+!CmakeLists.txt
