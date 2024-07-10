@@ -1,9 +1,7 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
-    /*
-        your code here :)
-    */
+    setlocale(LC_ALL, "RU");
 
     std::cout << "Test\n";
 
