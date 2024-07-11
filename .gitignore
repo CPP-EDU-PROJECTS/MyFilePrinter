@@ -38,3 +38,5 @@ fprinter
 Makefile
 *.txt
 !CmakeLists.txt
+fprinter.dir
+Debug
