@@ -1,10 +1,9 @@
-//  C:\Users\Toflar\Desktop\Me\dev-cpp\MyFilePrinter\Debug\fprinter.exe
-// cmake --build .
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <charconv>
+#include <fstream>
 #include <string_view>
 
 int ParseToInt(const std::string& s) {
@@ -13,98 +12,120 @@ int ParseToInt(const std::string& s) {
     auto [_, err] = std::from_chars(view.data(), view.data() + view.size(), result);
 
     if (err == std::errc::invalid_argument) {
-        std::cerr << s << " is not number" << std::endl;
-
+        std::cerr << s << " is not a number" << std::endl;
         std::exit(EXIT_FAILURE);
     } else if (err == std::errc::result_out_of_range) {
         std::cerr << "Too big number" << std::endl;
-
         std::exit(EXIT_FAILURE);
     }
     return result;
 }
 
 struct Options {
-    int lines;
+    int lines = 0;
     bool is_tail = false;
-    char delimiter = '\n';
+    std::string delimiter = "\n";
     bool is_full = true;
+    bool is_end = false;
+    std::string name_file;
 };
-
 
 int main(int argc, char** argv) {
     std::vector<std::string> args = {argv, argv + argc};
 
-    // for (auto i : args) {
-    //     std::cout << i << std::endl;
-    // }
-
     Options opt;
 
     for (int i = 1; i < args.size(); ++i) { // -l 5 --lines=5
-        if (args[i] == "-l" || args[i].substr(0, 8) == "--lines=") {
-            if (args[i] == "-l") { // ÑÐ»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚
-
-                if (i + 1 < args.size()) {
-                    int result = ParseToInt(args[i + 1]);
+        if (!opt.is_end) {
+            if (args[i] == "-l" || args[i].substr(0, 8) == "--lines=") {
+                if (args[i] == "-l") { // ñëåäóþùèé ýëåìåíò
+                    if (i + 1 < args.size()) {
+                        int result = ParseToInt(args[i + 1]);
+                        opt.is_full = false;
+                        opt.lines = result;
+                        ++i;
+                    } else {
+                        std::cerr << "Not given number for -l argument" << std::endl;
+                        return 0;
+                    }
+                } else {
+                    int result = ParseToInt(args[i].substr(8));
                     opt.is_full = false;
                     opt.lines = result;
-                } else {
-                    std::cerr << "Not given number for -l argument" << std::endl;
-                    return 0;
                 }
-
-            } else {
-                int result = ParseToInt(args[i].substr(8));
-                opt.is_full = false;
-                opt.lines = result;
-
-            }
-        } else if (args[i] == "--tail" || args[i] == "-t") {
-            opt.is_tail = true;
-        } else if (args[i] == "-d" || args[i].substr(0, 12) == "--delimiter=") {
-            if (args[i] == "-d") {
-                if (i + 1 < args.size()) {
-                    opt.delimiter = args[i + 1][0];
-                } else {
-                    std::cerr << "Not given character for -d argument" << std::endl;
-                    return 0;
-                }
-            } else {
-                if (args[i].size() >= 13) {
-                    if (args[i].substr(12) == "\\\\") {
-                        opt.delimiter = '\\';
-                    } else if (args[i].substr(12) == "\\n") {
-                        opt.delimiter = '\n';
-                    }
-                    else if (args[i].substr(12) == "\\t") {
-                        opt.delimiter = '\t';
-                    }
-                    else if (args[i].substr(12) == "\\\'") {
-                        opt.delimiter = '\'';
-                    }
-                    else if (args[i].substr(12) == "\\\"") {
-                        opt.delimiter = '\"';
+            } else if (args[i] == "--tail" || args[i] == "-t") {
+                opt.is_tail = true;
+            } else if (args[i] == "-d" || args[i].substr(0, 12) == "--delimiter=") {
+                if (args[i] == "-d") {
+                    if (i + 1 < args.size()) {
+                        opt.delimiter = args[i + 1];
+                        ++i;
                     } else {
-                        opt.delimiter = args[i][12];
+                        std::cerr << "Not given character for -d argument" << std::endl;
+                        return 0;
                     }
                 } else {
-                    std::cerr << "Not given character of delimiter" << std::endl;
-                    return 0;
+                    if (args[i].size() >= 13) {
+                        if (args[i].substr(12) == "\\\\") {
+                            opt.delimiter = "\\";
+                        } else if (args[i].substr(12) == "\\n") {
+                            opt.delimiter = "\n";
+                        } else if (args[i].substr(12) == "\\t") {
+                            opt.delimiter = "\t";
+                        } else if (args[i].substr(12) == "\\\'") {
+                            opt.delimiter = "\'";
+                        } else if (args[i].substr(12) == "\\\"") {
+                            opt.delimiter = "\"";
+                        } else {
+                            opt.delimiter = args[i].substr(12, 1);
+                        }
+                    } else {
+                        std::cerr << "Not given character for delimiter" << std::endl;
+                        return 0;
+                    }
                 }
+            } else {
+                opt.is_end = true; // äëÿ òîãî ÷òîáû ïîñëå ôàéëà íå ââîäèëèñü àðãóìåíòû
+                opt.name_file = args[i];
+            }
+        } else {
+        std::cerr << "You cannot use arguments after specifying the file" << std::endl;
+        return 0;
+        }
+    } 
+
+    std::ifstream file(opt.name_file);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file" << std::endl;
+        return 1;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(file, line)) {
+        line += opt.delimiter;
+        lines.push_back(line);
+    }
+
+    file.close();
+
+    if (opt.is_full) {
+        if (opt.is_tail) {
+            // full tail
+        } else {
+            for (const auto& l : lines) {
+                std::cout << l;
+            }
+        }
+    } else if (opt.lines > 0) {
+        if (opt.is_tail) {
+            // tail c lines
+        } else {
+            for (int i = 0; i < opt.lines; ++i) {
+                std::cout << lines[i];
             }
         }
     }
 
-    std::cout << std::endl;
-
-    std::cout << opt.lines << std::endl;
-    std::cout << opt.is_full << std::endl;
-    std::cout << opt.delimiter << std::endl;
-    std::cout << opt.is_tail << std::endl;
-
-    // Read Ð¿Ð¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ Ð²Ñ‹Ð²Ð¾Ð´Ð¸Ñ‚ÑŒ, opt.lines Ð²Ñ‹Ð²Ð¾Ð´Ð¸Ñ‚ÑŒ, Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°Ñ‚ÑŒ Ð´ÐµÐ»Ð¸Ð¼Ð¸Ñ‚ÐµÑ€, Ð²Ñ‹Ð²Ð¾Ð´Ð¸Ñ‚ÑŒ Ñ Ñ…Ð²Ð¾ÑÑ‚Ð°
-
     return 0;
 }
-
