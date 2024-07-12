@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
     Options opt;
 
-    for (int i = 1; i < args.size(); ++i) { // -l 5 --lines=5
+    for (int i = 1; i < args.size(); ++i) { // -l 5 --lines=5 /
         if (!opt.is_end) {
             if (args[i] == "-l" || args[i].substr(0, 8) == "--lines=") {
                 if (args[i] == "-l") { // следующий элемент
