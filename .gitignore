@@ -30,6 +30,9 @@
 *.exe
 *.out
 *.app
+*.vcxproj
+*.filters
+*.sln
 
 build
 CMakeFiles
