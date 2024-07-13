@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     for (int i = 1; i < args.size(); ++i) { // -l 5 --lines=5 /
         if (!opt.is_end) {
             if (args[i] == "-l" || args[i].substr(0, 8) == "--lines=") {
-                if (args[i] == "-l") { // следующий элемент
+                if (args[i] == "-l") { // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (i + 1 < args.size()) {
                         int result = ParseToInt(args[i + 1]);
                         opt.is_full = false;
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
                     }
                 }
             } else {
-                opt.is_end = true; // для того чтобы после файла не вводились аргументы
+                opt.is_end = true; // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 opt.name_file = args[i];
             }
         } else {
