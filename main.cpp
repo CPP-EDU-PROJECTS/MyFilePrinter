@@ -24,7 +24,8 @@ int ParseToInt(const std::string& s) {
 struct Options {
     int lines = 0;
     bool is_tail = false;
-    std::string delimiter = "\n";
+    // std::string delimiter = "\n";
+    char delimiter = '\n';
     bool is_full = true;
     bool is_end = false;
     std::string name_file;
@@ -58,7 +59,22 @@ int main(int argc, char** argv) {
             } else if (args[i] == "-d" || args[i].substr(0, 12) == "--delimiter=") {
                 if (args[i] == "-d") {
                     if (i + 1 < args.size()) {
-                        opt.delimiter = args[i + 1];
+                        if (args[i + 1] == "\\\\") {
+                            opt.delimiter = '\\';
+                        } else if (args[i + 1] == "\\n") {
+                            opt.delimiter = '\n';
+                        } else if (args[i + 1] == "\\t") {
+                            opt.delimiter = '\t';
+                        } else if (args[i + 1] == "\\\'") {
+                            opt.delimiter = '\'';
+                        } else if (args[i + 1] == "\\\"") {
+                            opt.delimiter = '\"';
+                        } else if (args[i].substr(12) == "\\0") {
+                            opt.delimiter = '\0';
+                        } else {
+                            std::cerr << "This argument is not available" << std::endl;
+                            return 0;
+                        }
                         ++i;
                     } else {
                         std::cerr << "Not given character for -d argument" << std::endl;
@@ -67,17 +83,20 @@ int main(int argc, char** argv) {
                 } else {
                     if (args[i].size() >= 13) {
                         if (args[i].substr(12) == "\\\\") {
-                            opt.delimiter = "\\";
+                            opt.delimiter = '\\';
                         } else if (args[i].substr(12) == "\\n") {
-                            opt.delimiter = "\n";
+                            opt.delimiter = '\n';
                         } else if (args[i].substr(12) == "\\t") {
-                            opt.delimiter = "\t";
+                            opt.delimiter = '\t';
                         } else if (args[i].substr(12) == "\\\'") {
-                            opt.delimiter = "\'";
+                            opt.delimiter = '\'';
                         } else if (args[i].substr(12) == "\\\"") {
-                            opt.delimiter = "\"";
+                            opt.delimiter = '\"';
+                        } else if (args[i].substr(12) == "\\0") {
+                            opt.delimiter = '\0';
                         } else {
-                            opt.delimiter = args[i].substr(12, 1);
+                            std::cerr << "This argument is not available" << std::endl;
+                            return 0;
                         }
                     } else {
                         std::cerr << "Not given character for delimiter" << std::endl;
@@ -102,8 +121,7 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> lines;
     std::string line;
-    while (std::getline(file, line)) {
-        line += opt.delimiter;
+    while (std::getline(file, line, opt.delimiter)) {
         lines.push_back(line);
     }
 
