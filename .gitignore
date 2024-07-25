@@ -30,6 +30,9 @@
 *.exe
 *.out
 *.app
+*.vcxproj
+*.filters
+*.sln
 
 build
 CMakeFiles
@@ -38,3 +41,5 @@ fprinter
 Makefile
 *.txt
 !CmakeLists.txt
+fprinter.dir
+Debug
